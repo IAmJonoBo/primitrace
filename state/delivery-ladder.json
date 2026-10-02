@@ -1,0 +1,294 @@
+{
+  "schema_version": "cm-delivery-ladder.v1",
+  "programme_id": "primitrace-20261002",
+  "cursor_revision": 1,
+  "updated_at": "2026-10-03T00:00:00+00:00",
+  "summary": "primitrace rebuilds raster logos as designer-grade vectors: analytic primitive fitting on sub-pixel contours, chosen by sigma-normalised BIC and never worse than stacked potrace. Milestone 0 measures; milestone 1 fits flat-colour marks; milestone 2 adds snaps, gradients, strokes and assisted learning. Decisions are in docs/adr; the plan came from Consensus personal/logo-vectoriser (session s-ce513c776105) and the owner's decisions of 2 October 2026.",
+  "rules": [
+    "`state/delivery-ladder.json` is the only list of remaining work; `DELIVERY-LADDER.md` and `DELIVERY-LADDER.html` are generated views (`python3 scripts/ladder_check.py --write`), and `mise run ladder:check` refuses a view that differs from the JSON.",
+    "Exactly one rung is current, and all of its dependencies are done. A rung is done only when every exit gate has passed and its evidence files exist under `evidence/`.",
+    "Every rung also passes `mise run ci:validate`. No rung lowers a threshold, a test count or the noise-floor safety factor.",
+    "Decisions live in `docs/adr/`; a rung that changes one adds a superseding ADR.",
+    "No third-party or trademarked mark enters this repository; real-mark evaluation runs in the private consumer and is reported here as aggregates only."
+  ],
+  "targets": {
+    "m1_exit": {
+      "synthetic_primitive_recall": ">= 0.95",
+      "synthetic_hausdorff_px": "<= 0.5",
+      "round_trip_median_node_ratio": "<= 1.4",
+      "round_trip_iou": ">= 0.99",
+      "whole_mark_regressions_beyond_floor": 0
+    },
+    "defaults": {
+      "per_mark_seconds_median": 2.0,
+      "per_mark_seconds_p95": 5.0,
+      "peak_memory_gb": 2.0,
+      "dp_span_window": 64,
+      "sigma_clamp_px": [0.2, 2.0],
+      "snap_rail_source_px": 0.35,
+      "noise_floor_safety": 2.0,
+      "prevalence_cutoffs_percent": [20, 30]
+    }
+  },
+  "rungs": [
+    {
+      "id": "M0a",
+      "title": "Bench foundations",
+      "status": "done",
+      "outcome": "primitrace exists as a public, fleet-configured package holding the baseline engine and the measuring bench, with nothing third-party in it.",
+      "tasks": [
+        "Move prep, the stacked-potrace trace and fidelity out of Playlust L14 (ADR 2, ADR 10).",
+        "Synthetic marks with exact ground truth; pinned rsvg-convert and independent resvg; shape metrics on resampled sub-pixel contours; pinned svgo 4.1.0 keeping primitives (ADR 7, ADR 8).",
+        "Fail-closed corpus manifest.",
+        "Fleet python_uv configuration, public repository, hosted required verification and nightly macOS."
+      ],
+      "blockers": [],
+      "depends_on": [],
+      "decision": null,
+      "steps": [
+        "2026-10-02: repository created at IAmJonoBo/primitrace (7b953c8); Trunk clean with recorded bandit exceptions (bfe4a62); no-third-party-marks rule recorded (0eb942d). 23 tests; Required verification green.",
+        "The bench's first scoring caught stacked potrace dropping a 9 px sliver counter as a speck."
+      ],
+      "evidence_refs": ["evidence/M0a-foundations.json"],
+      "exit_gates": [
+        "`mise run ci:validate` passes locally and Required verification passes on hosted Linux.",
+        "Trunk reports no issues on every file.",
+        "No image is tracked in the repository."
+      ]
+    },
+    {
+      "id": "M0b",
+      "title": "Noise floor and frozen baseline",
+      "status": "current",
+      "outcome": "Every later claim is measured against a frozen, versioned baseline and can never undercut the renderers' own disagreement.",
+      "tasks": [
+        "Run `python -m primitrace.bench baseline` over 40 seeded marks at 64, 128 and 256 px (120 samples) with the potrace and vtracer arms.",
+        "Record tool versions, conventions, the noise floor (p95 per metric, safety 2.0), runtime and peak memory.",
+        "Add a test that asserts the recorded conventions match the code."
+      ],
+      "blockers": [],
+      "depends_on": ["M0a"],
+      "decision": null,
+      "steps": [],
+      "evidence_refs": [],
+      "exit_gates": [
+        "`bench/baseline.json` is committed, with versions, conventions, noise floor and per-item scores for both arms.",
+        "The svgo primitives-survive assertion passed in the same run (the CLI refuses otherwise).",
+        "A test fails if the conventions in code drift from those in `baseline.json`."
+      ]
+    },
+    {
+      "id": "M0c",
+      "title": "Licensed round-trip corpus",
+      "status": "queued",
+      "outcome": "A local, licence-checked corpus of real vector marks gives a clean round-trip stratum alongside the synthetic one.",
+      "tasks": [
+        "Fetch Simple Icons (CC0), Wikimedia Commons public-domain logo SVGs and OFL glyph outlines into `corpus/cache/` with manifest entries (ADR 8).",
+        "Rasterise each with the synthetic degradations; score the baseline on the round trip.",
+        "Keep everything local; report aggregates only."
+      ],
+      "blockers": [],
+      "depends_on": ["M0b"],
+      "decision": null,
+      "steps": [],
+      "evidence_refs": [],
+      "exit_gates": [
+        "`corpus.check` passes on the full cache; every file is in the manifest with an allowed licence.",
+        "The baseline is scored on the clean round-trip stratum and the result is recorded in evidence."
+      ]
+    },
+    {
+      "id": "M0d",
+      "title": "Prevalence audit",
+      "status": "queued",
+      "outcome": "We know how often real channel logos contain recoverable primitives, which decides how much fitter to build.",
+      "tasks": [
+        "A detector for recoverable circles, ellipses and fixed-angle straight runs, validated on synthetic truth.",
+        "Playlust (private) runs it over its catalogue logos and returns aggregate counts only.",
+        "Apply the traffic light from ADR 9."
+      ],
+      "blockers": [],
+      "depends_on": ["M0b"],
+      "decision": null,
+      "steps": [],
+      "evidence_refs": [],
+      "exit_gates": [
+        "The detector reaches recall >= 0.95 on synthetic primitives.",
+        "An aggregate prevalence report with confidence intervals is recorded, and the fitter scope is chosen by the recorded cutoffs."
+      ]
+    },
+    {
+      "id": "M0e",
+      "title": "Mastering measurements port",
+      "status": "queued",
+      "outcome": "n00bt00b's mastering measurements (keyAndTrim, analyse, classify) exist in Python and agree with its 37 cases.",
+      "tasks": [
+        "Port the three measurements from n00bt00b e8abe33f; the case file (verdicts and numbers) may be vendored here.",
+        "Synthetic tests here; the cross-check on the real fixtures runs in Playlust, which vendors them by sha256 (ADR 8)."
+      ],
+      "blockers": [],
+      "depends_on": ["M0a"],
+      "decision": null,
+      "steps": [],
+      "evidence_refs": [],
+      "exit_gates": [
+        "Playlust's cross-check agrees with `logo-mastering-cases.v1.json` on every case, or each difference is a recorded, owner-accepted case.",
+        "No fixture image enters this repository."
+      ]
+    },
+    {
+      "id": "M1a",
+      "title": "Sub-pixel contours and sigma",
+      "status": "queued",
+      "outcome": "Contours come from the soft field with a measured anti-alias width, and multi-scale agreement is a confidence signal.",
+      "tasks": [
+        "Iso-contours per colour region from the anti-aliased field; sigma estimated, median-filtered and clamped to 0.2-2.0 px (ADR 4).",
+        "Multi-scale previews for topology arbitration and confidence; ablation of enlarged-image tracing (ADR 5)."
+      ],
+      "blockers": [],
+      "depends_on": ["M0b", "M0d"],
+      "decision": null,
+      "steps": [],
+      "evidence_refs": [],
+      "exit_gates": [
+        "On synthetic marks, contour Hausdorff to truth is within 2x the noise floor before any fitting.",
+        "The ablation result for enlarged tracing is recorded, and the tracing source is chosen from it."
+      ]
+    },
+    {
+      "id": "M1b",
+      "title": "Primitive fitter",
+      "status": "queued",
+      "outcome": "Each contour is rebuilt from the fewest primitives the evidence supports.",
+      "tasks": [
+        "Per-segment candidates: line, circular arc, elliptical arc, quadratic and cubic Bezier; whole-contour circle, ellipse, rect, rounded rect and regular polygon.",
+        "Sigma-normalised BIC with lambda = 1; bounded moment-prefix DP (W = 64) behind an ablation switch against a seeded corner-split; per-mark budget 2.0 s median, 5.0 s p95, under 2 GB (ADR 4)."
+      ],
+      "blockers": [],
+      "depends_on": ["M1a"],
+      "decision": null,
+      "steps": [],
+      "evidence_refs": [],
+      "exit_gates": [
+        "Synthetic primitive recall >= 0.95 with Hausdorff <= 0.5 px.",
+        "The DP versus corner-split default is chosen from the recorded ablation within the budget."
+      ]
+    },
+    {
+      "id": "M1c",
+      "title": "Non-regression and milestone 1 exit",
+      "status": "queued",
+      "outcome": "The fitter ships only where it beats stacked potrace, and never makes a published mark worse.",
+      "tasks": [
+        "Two-level non-regression: per-contour choice with render-back, whole-mark rollback to stacked potrace (ADR 6).",
+        "A gate refusing photographs and gradient marks (ADR 9).",
+        "Paired per-item deltas with bootstrap intervals against `baseline.json`."
+      ],
+      "blockers": [],
+      "depends_on": ["M1b", "M0c"],
+      "decision": null,
+      "steps": [],
+      "evidence_refs": [],
+      "exit_gates": [
+        "Zero whole-mark regressions beyond the noise floor.",
+        "Clean licensed round trip: median nodes <= 1.4x the source and IoU >= 0.99.",
+        "Playlust's held-out real-mark evaluation is reported (aggregates only)."
+      ]
+    },
+    {
+      "id": "M2a",
+      "title": "Relationship snaps",
+      "status": "queued",
+      "outcome": "Masters carry a designer's regularity: parallels, equal radii, concentric arcs, symmetry and repeated shapes.",
+      "tasks": [
+        "Detect relations; accept a snap only when the residual stays within the 0.35 source px rail; re-fit after each accepted snap until description length stops falling.",
+        "Instancing of repeated shapes via `<use>`."
+      ],
+      "blockers": [],
+      "depends_on": ["M1c"],
+      "decision": null,
+      "steps": [],
+      "evidence_refs": [],
+      "exit_gates": [
+        "No snap moves geometry beyond the rail, asserted on synthetic truth.",
+        "Description length falls with no whole-mark regression beyond the noise floor."
+      ]
+    },
+    {
+      "id": "M2b",
+      "title": "Gradients",
+      "status": "queued",
+      "outcome": "Linear and radial gradient marks are fitted rather than refused.",
+      "tasks": [
+        "Fit linear and radial ramps per region within a Delta E bound; emit `<linearGradient>`/`<radialGradient>`.",
+        "Lift the M1 refusal for gradients that fit."
+      ],
+      "blockers": [],
+      "depends_on": ["M1c"],
+      "decision": null,
+      "steps": [],
+      "evidence_refs": [],
+      "exit_gates": [
+        "Mean Delta E00 <= 3 on gradient regions of synthetic truth.",
+        "Marks that do not fit stay refused."
+      ]
+    },
+    {
+      "id": "M2c",
+      "title": "Strokes and shared boundaries",
+      "status": "queued",
+      "outcome": "Line-art marks keep uniform stroke widths, and adjacent regions share one boundary with no hairline seams.",
+      "tasks": [
+        "Centreline recovery for uniform-width strokes.",
+        "Shared-boundary fitting between adjacent regions (region adjacency graph)."
+      ],
+      "blockers": [],
+      "depends_on": ["M1c"],
+      "decision": null,
+      "steps": [],
+      "evidence_refs": [],
+      "exit_gates": [
+        "No hairline seams at any display size in the render-back check.",
+        "Stroke widths are recovered within the noise floor on synthetic truth."
+      ]
+    },
+    {
+      "id": "M2d",
+      "title": "Confidence and assisted learning",
+      "status": "reserved",
+      "outcome": "Confidence is calibrated against human judgement, and a reviewer sees only the cases the engine doubts.",
+      "tasks": [
+        "An uncertainty-ranked review page: accept, reject or pick an alternative fit.",
+        "Labels retrain the gate, the per-class parameters and isotonic calibration; learned parts never touch coordinates (ADR 3)."
+      ],
+      "blockers": [],
+      "depends_on": ["M1c"],
+      "decision": "The owner sets the label budget (for example 200 initially, then about 20 a week).",
+      "steps": [],
+      "evidence_refs": [],
+      "exit_gates": [
+        "ECE <= 0.05 on the labelled set.",
+        "Every learned component is reversible, and the engine runs offline without it."
+      ]
+    },
+    {
+      "id": "M3",
+      "title": "Release",
+      "status": "reserved",
+      "outcome": "primitrace is installable as a versioned package with a stable API.",
+      "tasks": [
+        "A stable API: `vectorise(rgba) -> Result{svg, mono_svg, confidence, report}`.",
+        "Versioned releases with a changelog."
+      ],
+      "blockers": [],
+      "depends_on": ["M1c"],
+      "decision": "The owner decides PyPI publication, and whether primitrace is personal or a house venture (with a fleet registry entry).",
+      "steps": [],
+      "evidence_refs": [],
+      "exit_gates": [
+        "The API is documented and covered by tests.",
+        "The release process is recorded and repeatable."
+      ]
+    }
+  ]
+}

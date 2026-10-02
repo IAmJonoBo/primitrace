@@ -2,3 +2,6 @@
 scripts/check-portability.mjs
 uv.lock
 tools/svgo/package-lock.json
+# Generated views of state/delivery-ladder.json; formatting them would break the drift check.
+DELIVERY-LADDER.md
+DELIVERY-LADDER.html

@@ -1,0 +1,30 @@
+{
+  "rung": "M0a",
+  "recorded_at": "2026-10-03",
+  "what": "Bench foundations: engine moved from Playlust L14, M0 bench modules, fleet python_uv configuration, public repository.",
+  "commits": {
+    "initial": "7b953c8",
+    "trunk_clean": "bfe4a62",
+    "no_third_party_marks": "0eb942d"
+  },
+  "gate": {
+    "command": "mise run ci:validate",
+    "tests_passed": 23,
+    "trunk": "trunk check --all: no issues on 42 files"
+  },
+  "ci": {
+    "workflow": "Fleet verification",
+    "job": "Required verification",
+    "run_id": 37068083264,
+    "conclusion": "success",
+    "head_sha": "0eb942d800bc0a1d9045bdeec4b705a38344de11",
+    "runner": "ubuntu-24.04 (GitHub-hosted)"
+  },
+  "renderer_disagreement_smoke": {
+    "note": "single mark, 64 px, pinned rsvg-convert vs resvg",
+    "iou": 0.99356,
+    "hausdorff_px": 0.0373,
+    "chamfer_px": 0.0119
+  },
+  "tracked_images": 0
+}

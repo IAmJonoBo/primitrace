@@ -1,7 +1,8 @@
 # AGENTS.md
 
-primitrace is a Python library for designer-grade vectorisation. The design record is Consensus
-topic `personal/logo-vectoriser`, P1 and its decision.
+primitrace is a Python library for designer-grade vectorisation. Decisions are in `docs/adr/`.
+Remaining work is in the delivery ladder, `state/delivery-ladder.json`, which is rendered to
+`DELIVERY-LADDER.md`; see `docs/delivery-ladder.md` for how to advance a rung.
 
 ## Rules
 
@@ -35,3 +36,6 @@ topic `personal/logo-vectoriser`, P1 and its decision.
 | `src/primitrace/bench/`      | Synthetic marks, renderers, shape metrics, noise floor and baseline      |
 | `tools/svgo/`                | Pinned svgo and its committed config (primitives kept, hex colours kept) |
 | `corpus/`                    | Licence manifest; local cache is ignored                                 |
+| `docs/adr/`                  | Architecture decision records                                            |
+| `state/delivery-ladder.json` | The programme's remaining work; rendered to `DELIVERY-LADDER.md`         |
+| `evidence/`                  | Evidence cited by done rungs (aggregates only)                           |

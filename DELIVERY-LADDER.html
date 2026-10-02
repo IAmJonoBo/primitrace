@@ -1,0 +1,215 @@
+<title>primitrace Delivery Ladder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a single reading column; a rung track up top, then targets, then one block per rung. */
+:root {
+  --bg: #f4f6f7; --surface: #ffffff; --ink: #14212b; --muted: #55646f; --line: #d6dde2;
+  --accent: #0b7a75; --accent-soft: #dcefed;
+  --done: #2f7d3b; --done-soft: #e1f0e3; --current: #0b7a75; --current-soft: #d6eeec;
+  --reserved: #8a5a00; --reserved-soft: #f6ead2; --blocked: #b23a2e; --blocked-soft: #f7e0dc;
+  --queued: #5b6873; --queued-soft: #e7ecef;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f171d; --surface: #16212a; --ink: #e3eaee; --muted: #9aa9b3; --line: #2a3945;
+  --accent: #4cc3bb; --accent-soft: #143534;
+  --done: #7ccf88; --done-soft: #183423; --current: #4cc3bb; --current-soft: #143534;
+  --reserved: #e7b454; --reserved-soft: #3a2d12; --blocked: #f08b7f; --blocked-soft: #3d1e1a;
+  --queued: #a3b1bb; --queued-soft: #22303a; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0f171d; --surface: #16212a; --ink: #e3eaee; --muted: #9aa9b3; --line: #2a3945;
+  --accent: #4cc3bb; --accent-soft: #143534;
+  --done: #7ccf88; --done-soft: #183423; --current: #4cc3bb; --current-soft: #143534;
+  --reserved: #e7b454; --reserved-soft: #3a2d12; --blocked: #f08b7f; --blocked-soft: #3d1e1a;
+  --queued: #a3b1bb; --queued-soft: #22303a; color-scheme: dark; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.6 var(--font-body); }
+.wrap { max-width: 60rem; margin: 0 auto; padding-inline: 16px; padding-block: 2.5rem 4rem; display: grid; gap: 2.5rem; }
+header { display: grid; gap: .5rem; }
+.eyebrow { font: 500 .75rem/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: 2rem; line-height: 1.2; margin: 0; font-weight: 600; text-wrap: balance; }
+h2 { font-size: 1.15rem; margin: 0; font-weight: 600; text-wrap: balance; }
+h3 { font: 500 .72rem/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0; }
+p { margin: 0; max-width: 68ch; }
+.meta { display: flex; flex-wrap: wrap; gap: .25rem 1.5rem; color: var(--muted); font: .82rem/1.5 var(--font-mono); }
+code { font: .86em var(--font-mono); background: var(--queued-soft); padding: .05em .3em; border-radius: 3px; overflow-wrap: anywhere; }
+section { display: grid; gap: 1rem; min-width: 0; }
+ul { margin: 0; padding-left: 1.2rem; display: grid; gap: .3rem; }
+.rules li { color: var(--muted); }
+.track { list-style: none; padding: 0; display: grid; gap: 0; border-top: 1px solid var(--line); }
+.track li { display: grid; grid-template-columns: 3.2rem 1fr auto; gap: .75rem; align-items: baseline; padding: .6rem 0; border-bottom: 1px solid var(--line); }
+.track a { color: inherit; text-decoration: none; min-width: 0; }
+.track a:hover, .track a:focus-visible { color: var(--accent); text-decoration: underline; }
+.rid { font: 500 .9rem var(--font-mono); color: var(--muted); }
+.chip { font: 500 .7rem/1 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; padding: .35rem .55rem; border-radius: 999px; white-space: nowrap; }
+.s-done { color: var(--done); background: var(--done-soft); }
+.s-current, .s-next { color: var(--current); background: var(--current-soft); }
+.s-reserved { color: var(--reserved); background: var(--reserved-soft); }
+.s-blocked { color: var(--blocked); background: var(--blocked-soft); }
+.s-queued { color: var(--queued); background: var(--queued-soft); }
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: .88rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .55rem .8rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 500 .7rem var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+tr:last-child td { border-bottom: 0; }
+td.num { font-family: var(--font-mono); white-space: nowrap; }
+.rung { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 1.25rem; display: grid; gap: 1rem; scroll-margin-top: 1rem; }
+.rung.is-current { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.rung-head { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; justify-content: space-between; }
+.rung-head h2 { display: flex; gap: .75rem; align-items: baseline; min-width: 0; }
+.deps { color: var(--muted); font: .8rem var(--font-mono); }
+.decision { border-left: 3px solid var(--reserved); background: var(--reserved-soft); padding: .6rem .8rem; border-radius: 0 4px 4px 0; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem 1.5rem; }
+.cols > div { display: grid; gap: .5rem; align-content: start; min-width: 0; }
+.gates li::marker { content: "▢  "; color: var(--accent); }
+.rung[data-status="done"] .gates li::marker { content: "☑  "; color: var(--done); }
+footer { color: var(--muted); font-size: .82rem; }
+@media (max-width: 480px) { .track li { grid-template-columns: 2.6rem 1fr; } .track .chip { grid-column: 2; justify-self: start; } }
+</style>
+
+<main class="wrap">
+<header>
+<span class="eyebrow">Gated roadmap</span>
+<h1>primitrace delivery ladder</h1>
+<p>primitrace rebuilds raster logos as designer-grade vectors: analytic primitive fitting on sub-pixel contours, chosen by sigma-normalised BIC and never worse than stacked potrace. Milestone 0 measures; milestone 1 fits flat-colour marks; milestone 2 adds snaps, gradients, strokes and assisted learning. Decisions are in docs/adr; the plan came from Consensus personal/logo-vectoriser (session s-ce513c776105) and the owner&#x27;s decisions of 2 October 2026.</p>
+<div class="meta">
+<span>primitrace-20261002</span>
+<span>revision 1</span>
+<span>updated 2026-10-03T00:00:00+00:00</span>
+<span>1 of 13 rungs done</span>
+<span>current: M0b</span>
+</div></header>
+<section aria-labelledby="track-h"><h3 id="track-h">Rungs</h3><ol class="track">
+<li><span class="rid">M0a</span><a href="#m0a">Bench foundations</a><span class="chip s-done">Done</span></li>
+<li><span class="rid">M0b</span><a href="#m0b">Noise floor and frozen baseline</a><span class="chip s-current">Current</span></li>
+<li><span class="rid">M0c</span><a href="#m0c">Licensed round-trip corpus</a><span class="chip s-queued">Queued</span></li>
+<li><span class="rid">M0d</span><a href="#m0d">Prevalence audit</a><span class="chip s-queued">Queued</span></li>
+<li><span class="rid">M0e</span><a href="#m0e">Mastering measurements port</a><span class="chip s-queued">Queued</span></li>
+<li><span class="rid">M1a</span><a href="#m1a">Sub-pixel contours and sigma</a><span class="chip s-queued">Queued</span></li>
+<li><span class="rid">M1b</span><a href="#m1b">Primitive fitter</a><span class="chip s-queued">Queued</span></li>
+<li><span class="rid">M1c</span><a href="#m1c">Non-regression and milestone 1 exit</a><span class="chip s-queued">Queued</span></li>
+<li><span class="rid">M2a</span><a href="#m2a">Relationship snaps</a><span class="chip s-queued">Queued</span></li>
+<li><span class="rid">M2b</span><a href="#m2b">Gradients</a><span class="chip s-queued">Queued</span></li>
+<li><span class="rid">M2c</span><a href="#m2c">Strokes and shared boundaries</a><span class="chip s-queued">Queued</span></li>
+<li><span class="rid">M2d</span><a href="#m2d">Confidence and assisted learning</a><span class="chip s-reserved">Reserved</span></li>
+<li><span class="rid">M3</span><a href="#m3">Release</a><span class="chip s-reserved">Reserved</span></li>
+</ol></section>
+<section aria-labelledby="rules-h"><h3 id="rules-h">Rules</h3><ul class="rules">
+<li><code>state/delivery-ladder.json</code> is the only list of remaining work; <code>DELIVERY-LADDER.md</code> and <code>DELIVERY-LADDER.html</code> are generated views (<code>python3 scripts/ladder_check.py --write</code>), and <code>mise run ladder:check</code> refuses a view that differs from the JSON.</li>
+<li>Exactly one rung is current, and all of its dependencies are done. A rung is done only when every exit gate has passed and its evidence files exist under <code>evidence/</code>.</li>
+<li>Every rung also passes <code>mise run ci:validate</code>. No rung lowers a threshold, a test count or the noise-floor safety factor.</li>
+<li>Decisions live in <code>docs/adr/</code>; a rung that changes one adds a superseding ADR.</li>
+<li>No third-party or trademarked mark enters this repository; real-mark evaluation runs in the private consumer and is reported here as aggregates only.</li>
+</ul></section>
+<article class="rung" id="m0a" data-status="done">
+<div class="rung-head"><h2><span class="rid">M0a</span>Bench foundations</h2><span class="chip s-done">Done</span></div>
+<div class="deps">depends on: none</div>
+<p>primitrace exists as a public, fleet-configured package holding the baseline engine and the measuring bench, with nothing third-party in it.</p>
+<div class="cols">
+<div><h3>Exit gates</h3><ul class="gates"><li><code>mise run ci:validate</code> passes locally and Required verification passes on hosted Linux.</li><li>Trunk reports no issues on every file.</li><li>No image is tracked in the repository.</li></ul></div>
+<div><h3>Tasks</h3><ul><li>Move prep, the stacked-potrace trace and fidelity out of Playlust L14 (ADR 2, ADR 10).</li><li>Synthetic marks with exact ground truth; pinned rsvg-convert and independent resvg; shape metrics on resampled sub-pixel contours; pinned svgo 4.1.0 keeping primitives (ADR 7, ADR 8).</li><li>Fail-closed corpus manifest.</li><li>Fleet python_uv configuration, public repository, hosted required verification and nightly macOS.</li></ul></div>
+<div><h3>Steps</h3><ul><li>2026-10-02: repository created at IAmJonoBo/primitrace (7b953c8); Trunk clean with recorded bandit exceptions (bfe4a62); no-third-party-marks rule recorded (0eb942d). 23 tests; Required verification green.</li><li>The bench&#x27;s first scoring caught stacked potrace dropping a 9 px sliver counter as a speck.</li></ul></div>
+<div><h3>Evidence</h3><ul><li><code>evidence/M0a-foundations.json</code></li></ul></div>
+</div></article>
+<article class="rung is-current" id="m0b" data-status="current">
+<div class="rung-head"><h2><span class="rid">M0b</span>Noise floor and frozen baseline</h2><span class="chip s-current">Current</span></div>
+<div class="deps">depends on: M0a</div>
+<p>Every later claim is measured against a frozen, versioned baseline and can never undercut the renderers&#x27; own disagreement.</p>
+<div class="cols">
+<div><h3>Exit gates</h3><ul class="gates"><li><code>bench/baseline.json</code> is committed, with versions, conventions, noise floor and per-item scores for both arms.</li><li>The svgo primitives-survive assertion passed in the same run (the CLI refuses otherwise).</li><li>A test fails if the conventions in code drift from those in <code>baseline.json</code>.</li></ul></div>
+<div><h3>Tasks</h3><ul><li>Run <code>python -m primitrace.bench baseline</code> over 40 seeded marks at 64, 128 and 256 px (120 samples) with the potrace and vtracer arms.</li><li>Record tool versions, conventions, the noise floor (p95 per metric, safety 2.0), runtime and peak memory.</li><li>Add a test that asserts the recorded conventions match the code.</li></ul></div>
+</div></article>
+<article class="rung" id="m0c" data-status="queued">
+<div class="rung-head"><h2><span class="rid">M0c</span>Licensed round-trip corpus</h2><span class="chip s-queued">Queued</span></div>
+<div class="deps">depends on: M0b</div>
+<p>A local, licence-checked corpus of real vector marks gives a clean round-trip stratum alongside the synthetic one.</p>
+<div class="cols">
+<div><h3>Exit gates</h3><ul class="gates"><li><code>corpus.check</code> passes on the full cache; every file is in the manifest with an allowed licence.</li><li>The baseline is scored on the clean round-trip stratum and the result is recorded in evidence.</li></ul></div>
+<div><h3>Tasks</h3><ul><li>Fetch Simple Icons (CC0), Wikimedia Commons public-domain logo SVGs and OFL glyph outlines into <code>corpus/cache/</code> with manifest entries (ADR 8).</li><li>Rasterise each with the synthetic degradations; score the baseline on the round trip.</li><li>Keep everything local; report aggregates only.</li></ul></div>
+</div></article>
+<article class="rung" id="m0d" data-status="queued">
+<div class="rung-head"><h2><span class="rid">M0d</span>Prevalence audit</h2><span class="chip s-queued">Queued</span></div>
+<div class="deps">depends on: M0b</div>
+<p>We know how often real channel logos contain recoverable primitives, which decides how much fitter to build.</p>
+<div class="cols">
+<div><h3>Exit gates</h3><ul class="gates"><li>The detector reaches recall &gt;= 0.95 on synthetic primitives.</li><li>An aggregate prevalence report with confidence intervals is recorded, and the fitter scope is chosen by the recorded cutoffs.</li></ul></div>
+<div><h3>Tasks</h3><ul><li>A detector for recoverable circles, ellipses and fixed-angle straight runs, validated on synthetic truth.</li><li>Playlust (private) runs it over its catalogue logos and returns aggregate counts only.</li><li>Apply the traffic light from ADR 9.</li></ul></div>
+</div></article>
+<article class="rung" id="m0e" data-status="queued">
+<div class="rung-head"><h2><span class="rid">M0e</span>Mastering measurements port</h2><span class="chip s-queued">Queued</span></div>
+<div class="deps">depends on: M0a</div>
+<p>n00bt00b&#x27;s mastering measurements (keyAndTrim, analyse, classify) exist in Python and agree with its 37 cases.</p>
+<div class="cols">
+<div><h3>Exit gates</h3><ul class="gates"><li>Playlust&#x27;s cross-check agrees with <code>logo-mastering-cases.v1.json</code> on every case, or each difference is a recorded, owner-accepted case.</li><li>No fixture image enters this repository.</li></ul></div>
+<div><h3>Tasks</h3><ul><li>Port the three measurements from n00bt00b e8abe33f; the case file (verdicts and numbers) may be vendored here.</li><li>Synthetic tests here; the cross-check on the real fixtures runs in Playlust, which vendors them by sha256 (ADR 8).</li></ul></div>
+</div></article>
+<article class="rung" id="m1a" data-status="queued">
+<div class="rung-head"><h2><span class="rid">M1a</span>Sub-pixel contours and sigma</h2><span class="chip s-queued">Queued</span></div>
+<div class="deps">depends on: M0b, M0d</div>
+<p>Contours come from the soft field with a measured anti-alias width, and multi-scale agreement is a confidence signal.</p>
+<div class="cols">
+<div><h3>Exit gates</h3><ul class="gates"><li>On synthetic marks, contour Hausdorff to truth is within 2x the noise floor before any fitting.</li><li>The ablation result for enlarged tracing is recorded, and the tracing source is chosen from it.</li></ul></div>
+<div><h3>Tasks</h3><ul><li>Iso-contours per colour region from the anti-aliased field; sigma estimated, median-filtered and clamped to 0.2-2.0 px (ADR 4).</li><li>Multi-scale previews for topology arbitration and confidence; ablation of enlarged-image tracing (ADR 5).</li></ul></div>
+</div></article>
+<article class="rung" id="m1b" data-status="queued">
+<div class="rung-head"><h2><span class="rid">M1b</span>Primitive fitter</h2><span class="chip s-queued">Queued</span></div>
+<div class="deps">depends on: M1a</div>
+<p>Each contour is rebuilt from the fewest primitives the evidence supports.</p>
+<div class="cols">
+<div><h3>Exit gates</h3><ul class="gates"><li>Synthetic primitive recall &gt;= 0.95 with Hausdorff &lt;= 0.5 px.</li><li>The DP versus corner-split default is chosen from the recorded ablation within the budget.</li></ul></div>
+<div><h3>Tasks</h3><ul><li>Per-segment candidates: line, circular arc, elliptical arc, quadratic and cubic Bezier; whole-contour circle, ellipse, rect, rounded rect and regular polygon.</li><li>Sigma-normalised BIC with lambda = 1; bounded moment-prefix DP (W = 64) behind an ablation switch against a seeded corner-split; per-mark budget 2.0 s median, 5.0 s p95, under 2 GB (ADR 4).</li></ul></div>
+</div></article>
+<article class="rung" id="m1c" data-status="queued">
+<div class="rung-head"><h2><span class="rid">M1c</span>Non-regression and milestone 1 exit</h2><span class="chip s-queued">Queued</span></div>
+<div class="deps">depends on: M1b, M0c</div>
+<p>The fitter ships only where it beats stacked potrace, and never makes a published mark worse.</p>
+<div class="cols">
+<div><h3>Exit gates</h3><ul class="gates"><li>Zero whole-mark regressions beyond the noise floor.</li><li>Clean licensed round trip: median nodes &lt;= 1.4x the source and IoU &gt;= 0.99.</li><li>Playlust&#x27;s held-out real-mark evaluation is reported (aggregates only).</li></ul></div>
+<div><h3>Tasks</h3><ul><li>Two-level non-regression: per-contour choice with render-back, whole-mark rollback to stacked potrace (ADR 6).</li><li>A gate refusing photographs and gradient marks (ADR 9).</li><li>Paired per-item deltas with bootstrap intervals against <code>baseline.json</code>.</li></ul></div>
+</div></article>
+<article class="rung" id="m2a" data-status="queued">
+<div class="rung-head"><h2><span class="rid">M2a</span>Relationship snaps</h2><span class="chip s-queued">Queued</span></div>
+<div class="deps">depends on: M1c</div>
+<p>Masters carry a designer&#x27;s regularity: parallels, equal radii, concentric arcs, symmetry and repeated shapes.</p>
+<div class="cols">
+<div><h3>Exit gates</h3><ul class="gates"><li>No snap moves geometry beyond the rail, asserted on synthetic truth.</li><li>Description length falls with no whole-mark regression beyond the noise floor.</li></ul></div>
+<div><h3>Tasks</h3><ul><li>Detect relations; accept a snap only when the residual stays within the 0.35 source px rail; re-fit after each accepted snap until description length stops falling.</li><li>Instancing of repeated shapes via <code>&lt;use&gt;</code>.</li></ul></div>
+</div></article>
+<article class="rung" id="m2b" data-status="queued">
+<div class="rung-head"><h2><span class="rid">M2b</span>Gradients</h2><span class="chip s-queued">Queued</span></div>
+<div class="deps">depends on: M1c</div>
+<p>Linear and radial gradient marks are fitted rather than refused.</p>
+<div class="cols">
+<div><h3>Exit gates</h3><ul class="gates"><li>Mean Delta E00 &lt;= 3 on gradient regions of synthetic truth.</li><li>Marks that do not fit stay refused.</li></ul></div>
+<div><h3>Tasks</h3><ul><li>Fit linear and radial ramps per region within a Delta E bound; emit <code>&lt;linearGradient&gt;</code>/<code>&lt;radialGradient&gt;</code>.</li><li>Lift the M1 refusal for gradients that fit.</li></ul></div>
+</div></article>
+<article class="rung" id="m2c" data-status="queued">
+<div class="rung-head"><h2><span class="rid">M2c</span>Strokes and shared boundaries</h2><span class="chip s-queued">Queued</span></div>
+<div class="deps">depends on: M1c</div>
+<p>Line-art marks keep uniform stroke widths, and adjacent regions share one boundary with no hairline seams.</p>
+<div class="cols">
+<div><h3>Exit gates</h3><ul class="gates"><li>No hairline seams at any display size in the render-back check.</li><li>Stroke widths are recovered within the noise floor on synthetic truth.</li></ul></div>
+<div><h3>Tasks</h3><ul><li>Centreline recovery for uniform-width strokes.</li><li>Shared-boundary fitting between adjacent regions (region adjacency graph).</li></ul></div>
+</div></article>
+<article class="rung" id="m2d" data-status="reserved">
+<div class="rung-head"><h2><span class="rid">M2d</span>Confidence and assisted learning</h2><span class="chip s-reserved">Reserved</span></div>
+<div class="deps">depends on: M1c</div>
+<p>Confidence is calibrated against human judgement, and a reviewer sees only the cases the engine doubts.</p>
+<div class="decision"><strong>Owner decision:</strong> The owner sets the label budget (for example 200 initially, then about 20 a week).</div>
+<div class="cols">
+<div><h3>Exit gates</h3><ul class="gates"><li>ECE &lt;= 0.05 on the labelled set.</li><li>Every learned component is reversible, and the engine runs offline without it.</li></ul></div>
+<div><h3>Tasks</h3><ul><li>An uncertainty-ranked review page: accept, reject or pick an alternative fit.</li><li>Labels retrain the gate, the per-class parameters and isotonic calibration; learned parts never touch coordinates (ADR 3).</li></ul></div>
+</div></article>
+<article class="rung" id="m3" data-status="reserved">
+<div class="rung-head"><h2><span class="rid">M3</span>Release</h2><span class="chip s-reserved">Reserved</span></div>
+<div class="deps">depends on: M1c</div>
+<p>primitrace is installable as a versioned package with a stable API.</p>
+<div class="decision"><strong>Owner decision:</strong> The owner decides PyPI publication, and whether primitrace is personal or a house venture (with a fleet registry entry).</div>
+<div class="cols">
+<div><h3>Exit gates</h3><ul class="gates"><li>The API is documented and covered by tests.</li><li>The release process is recorded and repeatable.</li></ul></div>
+<div><h3>Tasks</h3><ul><li>A stable API: <code>vectorise(rgba) -&gt; Result{svg, mono_svg, confidence, report}</code>.</li><li>Versioned releases with a changelog.</li></ul></div>
+</div></article>
+<footer>Generated from <code>state/delivery-ladder.json</code> by <code>scripts/ladder_check.py --write</code>. The JSON is the source of truth; evidence lives in <code>evidence/</code>.</footer>
+</main>

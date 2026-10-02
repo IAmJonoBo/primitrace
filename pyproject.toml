@@ -44,6 +44,10 @@ src = ["src", "tests"]
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP"]
 
+[tool.ruff.lint.per-file-ignores]
+# The ladder page embeds its stylesheet as one-line CSS rules.
+"scripts/ladder_check.py" = ["E501"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-W error"

@@ -19,6 +19,9 @@ anywhere beyond measurement noise.
 Photographs and gradient marks are refused, not traced badly. Learned components may gate inputs,
 score confidence and tune settings. They never move or invent geometry.
 
+The full plan is in [DELIVERY-LADDER.md](DELIVERY-LADDER.md), and the decisions behind it are in
+[docs/adr](docs/adr/README.md).
+
 ## Requirements
 
 - Python 3.13 with [uv](https://docs.astral.sh/uv/), and [mise](https://mise.jdx.dev/) for tasks

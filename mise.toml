@@ -46,6 +46,14 @@ run = "uv run pytest"
 description = "Build the sdist and wheel"
 run = "uv build"
 
+[tasks."ladder:check"]
+description = "Check the delivery ladder and its rendered views"
+run = "uv run python scripts/ladder_check.py"
+
+[tasks."ladder:write"]
+description = "Re-render DELIVERY-LADDER.md and DELIVERY-LADDER.html from the JSON"
+run = "uv run python scripts/ladder_check.py --write"
+
 [tasks.portability-check]
 description = "Verify repository text avoids machine-local absolute paths"
 run = "node scripts/check-portability.mjs"
@@ -66,6 +74,7 @@ mise run bootstrap
 mise run format:check
 mise run lint
 mise run portability-check
+mise run ladder:check
 mise run test
 mise run build
 """
