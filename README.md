@@ -10,11 +10,11 @@ anywhere beyond measurement noise.
 
 ## Status
 
-| Milestone | Scope | State |
-| --- | --- | --- |
-| M0 | Evaluation bench: synthetic ground truth, pinned renderers, noise floor, frozen stacked-potrace baseline, licence manifest, prevalence audit | in progress |
-| M1 | Primitive fitter for flat-colour marks (σ-normalised BIC on sub-pixel contours, two-level non-regression) | planned |
-| M2 | Relationship snaps, gradients, centreline strokes, shared boundaries, review UI | planned |
+| Milestone | Scope                                                                                                                                        | State       |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| M0        | Evaluation bench: synthetic ground truth, pinned renderers, noise floor, frozen stacked-potrace baseline, licence manifest, prevalence audit | in progress |
+| M1        | Primitive fitter for flat-colour marks (σ-normalised BIC on sub-pixel contours, two-level non-regression)                                    | planned     |
+| M2        | Relationship snaps, gradients, centreline strokes, shared boundaries, review UI                                                              | planned     |
 
 Photographs and gradient marks are refused, not traced badly. Learned components may gate inputs,
 score confidence and tune settings. They never move or invent geometry.

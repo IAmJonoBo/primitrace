@@ -11,11 +11,11 @@ are optional and local:
 
 Approved sources (operator decision, 2 October 2026):
 
-| Source | Licence | Use |
-| --- | --- | --- |
-| Synthetic marks | generated | training, calibration, tests |
-| Simple Icons | CC0-1.0 (some icons carry their own caveats) | round-trip ground truth |
-| Wikimedia Commons PD logos | public domain (trademarks remain) | round-trip ground truth, local only |
-| OFL font glyphs | OFL-1.1 | curve ground truth |
+| Source                     | Licence                                      | Use                                 |
+| -------------------------- | -------------------------------------------- | ----------------------------------- |
+| Synthetic marks            | generated                                    | training, calibration, tests        |
+| Simple Icons               | CC0-1.0 (some icons carry their own caveats) | round-trip ground truth             |
+| Wikimedia Commons PD logos | public domain (trademarks remain)            | round-trip ground truth, local only |
+| OFL font glyphs            | OFL-1.1                                      | curve ground truth                  |
 
 Real channel or brand logos are evaluation-only, held out and never used for fitting.

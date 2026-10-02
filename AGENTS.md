@@ -21,11 +21,11 @@ topic `personal/logo-vectoriser`, P1 and its decision.
 
 ## Layout
 
-| Path | Purpose |
-| --- | --- |
-| `src/primitrace/prep.py` | Key, trim, denoise and quantise a raster |
-| `src/primitrace/trace.py` | Stacked potrace (baseline) and mono silhouette |
-| `src/primitrace/fidelity.py` | Render-back fidelity against the prepared source |
-| `src/primitrace/bench/` | Synthetic marks, renderers, shape metrics, noise floor and baseline |
-| `tools/svgo/` | Pinned svgo and its committed config (primitives kept, hex colours kept) |
-| `corpus/` | Licence manifest; local cache is ignored |
+| Path                         | Purpose                                                                  |
+| ---------------------------- | ------------------------------------------------------------------------ |
+| `src/primitrace/prep.py`     | Key, trim, denoise and quantise a raster                                 |
+| `src/primitrace/trace.py`    | Stacked potrace (baseline) and mono silhouette                           |
+| `src/primitrace/fidelity.py` | Render-back fidelity against the prepared source                         |
+| `src/primitrace/bench/`      | Synthetic marks, renderers, shape metrics, noise floor and baseline      |
+| `tools/svgo/`                | Pinned svgo and its committed config (primitives kept, hex colours kept) |
+| `corpus/`                    | Licence manifest; local cache is ignored                                 |

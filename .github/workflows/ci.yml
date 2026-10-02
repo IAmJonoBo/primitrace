@@ -1,7 +1,7 @@
 ---
 name: Fleet verification
 
-on:
+"on":
   pull_request:
   push:
     branches: [main]

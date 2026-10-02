@@ -1,0 +1,9 @@
+# Bandit exceptions, each deliberate:
+#   B101  asserts are pytest's idiom, and only tests use them.
+#   B404, B603, B607  the tracer and the pinned rasteriser are system tools (potrace, rsvg-convert,
+#         and the repository's own svgo), called with a fixed argument list and never through a
+#         shell; SVG and pixel data travel on stdin or in a private temporary directory.
+#   B311  the synthetic corpus is seeded so it is identical on every machine; no randomness here
+#         is security-relevant.
+[bandit]
+skips = B101,B311,B404,B603,B607
