@@ -16,6 +16,12 @@ topic `personal/logo-vectoriser`, P1 and its decision.
 - The renderer is part of the measurement. Metrics use the pinned rasteriser, and its
   disagreement with the independent renderer is the floor no claim may undercut.
 - Corpus images are never committed. `corpus/manifest.json` is fail-closed.
+- This repository is public, so no third-party or trademarked mark may enter it, not even as a
+  test fixture. That covers broadcaster logos, n00bt00b's logo-mastering fixtures, Playlust's
+  originals and any master traced from them. Tests here use synthetic or freely licensed marks only.
+  Cross-checks against real marks (for example `logo-mastering-cases.v1.json`) run in Playlust,
+  which is private: it vendors the fixtures by sha256 and runs this package over them. Case files
+  holding only verdicts and numbers may be vendored here.
 - Heavy runs (large corpora, ×8 renders) must bound their memory. The development machine has
   16 GB and shares it with other work.
 

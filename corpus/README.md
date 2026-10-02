@@ -19,3 +19,6 @@ Approved sources (operator decision, 2 October 2026):
 | OFL font glyphs            | OFL-1.1                                      | curve ground truth                  |
 
 Real channel or brand logos are evaluation-only, held out and never used for fitting.
+
+Real channel or brand logos never enter this public repository, even as test fixtures. They are
+evaluated in the private consumer (Playlust) against this package.
