@@ -1,0 +1,4 @@
+# The portability guard is a managed fleet projection; its bytes must match the release digest.
+scripts/check-portability.mjs
+uv.lock
+tools/svgo/package-lock.json

@@ -1,0 +1,55 @@
+---
+# macOS compatibility, nightly and on demand rather than on every pull request. The library is
+# developed on Apple Silicon, so the gate still has to prove itself there.
+#
+# No `workflow_dispatch` inputs, and none may be added: CKV_GHA_7 requires them empty so a run
+# cannot be steered by its caller.
+name: macOS compatibility
+
+"on":
+  schedule:
+    - cron: "52 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: primitrace-macos-compatibility
+  cancel-in-progress: false
+
+jobs:
+  macos:
+    name: macOS compatibility
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Check out the exact revision
+        # yamllint disable rule:comments
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        # yamllint enable rule:comments
+        with:
+          persist-credentials: false
+
+      - name: Install the tracer and the pinned rasteriser
+        run: brew install potrace librsvg
+
+      - name: Install the pinned toolchain
+        # yamllint disable rule:comments
+        uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518 # v4.2.5
+        # yamllint enable rule:comments
+        with:
+          version: 2026.9.15
+
+      - name: Install Trunk
+        # yamllint disable rule:comments
+        uses: trunk-io/trunk-action/setup@e1234e67a86010d61ddac8d8ebf4b783e2ffd2fa # v2.0.0
+        # yamllint enable rule:comments
+
+      - name: Run changed-file linting (observational)
+        continue-on-error: true
+        timeout-minutes: 5
+        run: bash scripts/trunk-observe.sh
+
+      - name: Run repository-native verification
+        run: mise run ci:validate

@@ -1,0 +1,23 @@
+---
+extends: default
+rules:
+  braces:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
+  empty-lines:
+    max: 2
+    level: warning
+  line-length: disable
+
+ignore: |
+  .git/
+  .mise/
+  .venv/
+  .trunk/
+  .DS_Store
+  node_modules/
+  target/
+  pnpm-lock.yaml
+  package-lock.json
+  uv.lock
+  Cargo.lock

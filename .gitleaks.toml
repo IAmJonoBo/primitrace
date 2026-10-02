@@ -1,0 +1,11 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Test fixtures and lock files, verified 2026-08-07: fake tokens asserting redaction works, test idempotency keys, and content digests - not credentials."
+paths = [
+  '''.*\.test\.(ts|tsx|js|py|rs)$''',
+  '''.*/tests?/.*''',
+  '''.*\.lock\.json$''',
+  '''.*-lock\.(json|yaml)$''',
+]

@@ -1,0 +1,11 @@
+---
+# Portability policy: no machine-local absolute paths in repository text.
+# Allowed paths may contain examples of patterns this gate detects.
+noAbsolutePaths: true
+policy: >
+  Repository text must not contain machine-local absolute paths such as /Users,
+  /Volumes, /home, file URLs, or Windows drive paths. Use relative paths,
+  repo-root-relative paths, or runtime path construction instead.
+allowedPaths:
+  - portability.policy.yaml
+  - scripts/check-portability.mjs

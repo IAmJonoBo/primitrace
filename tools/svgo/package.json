@@ -1,0 +1,8 @@
+{
+  "name": "primitrace-svgo",
+  "private": true,
+  "description": "Pinned svgo for primitrace: the serialiser whose output the complexity metrics count.",
+  "dependencies": {
+    "svgo": "4.1.0"
+  }
+}

@@ -1,0 +1,8 @@
+---
+# Aligned with the fleet convention already set in Alidade and Arcana.
+# MD013 hard-wraps prose at a fixed column. Documentation here is written to be
+# read and diffed as sentences, not reflowed to a ruler, so it is off.
+MD013: false
+# Repeated section headings (Rationale, Evidence, Open items) are deliberate in
+# structured records where each entry carries the same sub-sections.
+MD024: false

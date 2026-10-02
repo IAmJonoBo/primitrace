@@ -1,0 +1,71 @@
+# Python is pinned by .python-version and locked by uv.lock; tasks run through `uv run`.
+# potrace and rsvg-convert are system tools (Homebrew: potrace librsvg; apt: potrace librsvg2-bin);
+# `doctor` refuses to continue without them.
+[tools]
+python = "3.13.16"
+uv = "0.12.21"
+node = "26.10.0"
+
+[env]
+UV_PYTHON = "3.13.16"
+
+[tasks.doctor]
+description = "Verify required tools and repository health"
+run = """
+mise ls --current
+command -v potrace >/dev/null || { echo 'potrace is missing (brew install potrace / apt install potrace)'; exit 1; }
+command -v rsvg-convert >/dev/null || { echo 'rsvg-convert is missing (brew install librsvg / apt install librsvg2-bin)'; exit 1; }
+potrace --version | head -1
+rsvg-convert --version
+"""
+
+[tasks.bootstrap]
+description = "Install locked Python dependencies and the pinned svgo"
+run = """
+uv sync --all-groups --locked
+npm ci --prefix tools/svgo --no-audit --no-fund --ignore-scripts
+"""
+
+[tasks.lint]
+description = "Ruff linting (E, F, W, I, B, UP)"
+run = "uv run ruff check ."
+
+[tasks."lint:fix"]
+description = "Apply Ruff fixes and formatting"
+run = "uv run ruff check --fix . && uv run ruff format ."
+
+[tasks."format:check"]
+description = "Check Python formatting with Ruff"
+run = "uv run ruff format --check ."
+
+[tasks.test]
+description = "Run the test suite (warnings are errors)"
+run = "uv run pytest"
+
+[tasks.build]
+description = "Build the sdist and wheel"
+run = "uv build"
+
+[tasks.portability-check]
+description = "Verify repository text avoids machine-local absolute paths"
+run = "node scripts/check-portability.mjs"
+
+[tasks.ci]
+description = "Run the CI verification gate"
+depends = ["ci:validate"]
+
+[tasks.qa]
+description = "Alias for ci"
+depends = ["ci"]
+
+[tasks."ci:validate"]
+description = "Run the repository-native CI verification gate"
+run = """
+mise run doctor
+mise run bootstrap
+mise run format:check
+mise run lint
+mise run portability-check
+mise run test
+mise run build
+"""

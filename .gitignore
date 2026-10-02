@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+.DS_Store
+node_modules/
+.trunk/*
+!.trunk/trunk.yaml
+
+# Local corpus cache: third-party and trademarked images are evaluated here and never committed
+# or redistributed (see corpus/README.md).
+.cache/
+corpus/cache/
